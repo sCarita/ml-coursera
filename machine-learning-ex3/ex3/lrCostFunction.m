@@ -36,14 +36,17 @@ grad = zeros(size(theta));
 %           grad = grad + YOUR_CODE_HERE (using the temp variable)
 %
 
+% -> Calculate our hypothesis
+h = sigmoid(X * theta);
+% -> Calculate penalty [Regularization]
+% because we don't add any penalty for theta_0, lets put him as null value
+theta_tmp = [0 ; theta(2:end, :)];
+reg_penalty = lambda*(theta_tmp'*theta_tmp)/(2*m);
+% -> Finally, lets calculate our Cost
+J = ((-y)'*log(h) - (1-y)'*log(1-h))/m + reg_penalty;
 
-
-
-
-
-
-
-
+% -> Calculate gradients
+grad = (X'*(h - y)+lambda*theta_tmp)/m;
 
 % =============================================================
 

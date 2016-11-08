@@ -30,11 +30,15 @@ X = [ones(m, 1) X];
 %       for each row.
 %       
 
+% -> OneVsAll Regularized Logistic Regression
 
-
-
-
-
+% Calculate the prediction for each one of the Logistic Regressions.
+prediction_matrix = sigmoid(X * all_theta');
+% Select the max value of prediction between all Logistic Regressions.
+[~, p] = max(prediction_matrix, [], 2);
+% The max level of prediction between LR of the different numbers is the
+% predicted number, so we only need to save the index of the max element in
+% order to predict the given number.
 
 % =========================================================================
 
