@@ -1,0 +1,249 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>nnCostFunction</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-11-12"><meta name="DC.source" content="nnCostFunction.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [J, grad] = nnCostFunction(nn_params, <span class="keyword">...</span>
+                                   input_layer_size, <span class="keyword">...</span>
+                                   hidden_layer_size, <span class="keyword">...</span>
+                                   num_labels, <span class="keyword">...</span>
+                                   X, y, lambda)
+<span class="comment">%NNCOSTFUNCTION Implements the neural network cost function for a two layer</span>
+<span class="comment">%neural network which performs classification</span>
+<span class="comment">%   [J grad] = NNCOSTFUNCTON(nn_params, hidden_layer_size, num_labels, ...</span>
+<span class="comment">%   X, y, lambda) computes the cost and gradient of the neural network. The</span>
+<span class="comment">%   parameters for the neural network are "unrolled" into the vector</span>
+<span class="comment">%   nn_params and need to be converted back into the weight matrices.</span>
+<span class="comment">%</span>
+<span class="comment">%   The returned parameter grad should be a "unrolled" vector of the</span>
+<span class="comment">%   partial derivatives of the neural network.</span>
+<span class="comment">%</span>
+
+<span class="comment">% Reshape nn_params back into the parameters Theta1 and Theta2, the weight matrices</span>
+<span class="comment">% for our 2 layer neural network</span>
+Theta1 = reshape(nn_params(1:hidden_layer_size * (input_layer_size + 1)), <span class="keyword">...</span>
+                 hidden_layer_size, (input_layer_size + 1));
+
+Theta2 = reshape(nn_params((1 + (hidden_layer_size * (input_layer_size + 1))):end), <span class="keyword">...</span>
+                 num_labels, (hidden_layer_size + 1));
+
+<span class="comment">% Setup some useful variables</span>
+m = size(X, 1);
+
+<span class="comment">% You need to return the following variables correctly</span>
+J = 0;
+Theta1_grad = zeros(size(Theta1));
+Theta2_grad = zeros(size(Theta2));
+
+<span class="comment">% ====================== YOUR CODE HERE ======================</span>
+<span class="comment">% Instructions: You should complete the code by working through the</span>
+<span class="comment">%               following parts.</span>
+<span class="comment">%</span>
+<span class="comment">% Part 1: Feedforward the neural network and return the cost in the</span>
+<span class="comment">%         variable J. After implementing Part 1, you can verify that your</span>
+<span class="comment">%         cost function computation is correct by verifying the cost</span>
+<span class="comment">%         computed in ex4.m</span>
+<span class="comment">%</span>
+<span class="comment">% Part 2: Implement the backpropagation algorithm to compute the gradients</span>
+<span class="comment">%         Theta1_grad and Theta2_grad. You should return the partial derivatives of</span>
+<span class="comment">%         the cost function with respect to Theta1 and Theta2 in Theta1_grad and</span>
+<span class="comment">%         Theta2_grad, respectively. After implementing Part 2, you can check</span>
+<span class="comment">%         that your implementation is correct by running checkNNGradients</span>
+<span class="comment">%</span>
+<span class="comment">%         Note: The vector y passed into the function is a vector of labels</span>
+<span class="comment">%               containing values from 1..K. You need to map this vector into a</span>
+<span class="comment">%               binary vector of 1's and 0's to be used with the neural network</span>
+<span class="comment">%               cost function.</span>
+<span class="comment">%</span>
+<span class="comment">%         Hint: We recommend implementing backpropagation using a for-loop</span>
+<span class="comment">%               over the training examples if you are implementing it for the</span>
+<span class="comment">%               first time.</span>
+<span class="comment">%</span>
+<span class="comment">% Part 3: Implement regularization with the cost function and gradients.</span>
+<span class="comment">%</span>
+<span class="comment">%         Hint: You can implement this around the code for</span>
+<span class="comment">%               backpropagation. That is, you can compute the gradients for</span>
+<span class="comment">%               the regularization separately and then add them to Theta1_grad</span>
+<span class="comment">%               and Theta2_grad from Part 2.</span>
+<span class="comment">%</span>
+
+<span class="comment">% First we calculate our Hipothesys for every x in X</span>
+a1 = [ones(m, 1) X]; <span class="comment">% add bias</span>
+z2 = Theta1 * a1';
+a2 = sigmoid(z2)';
+z3 = Theta1 * a2';
+a3 = sigmoid(z3)';
+
+disp(size(a3));
+
+
+
+
+
+<span class="comment">% -------------------------------------------------------------</span>
+
+<span class="comment">% =========================================================================</span>
+
+<span class="comment">% Unroll gradients</span>
+grad = [Theta1_grad(:) ; Theta2_grad(:)];
+
+
+<span class="keyword">end</span>
+</pre><pre class="codeoutput error">Not enough input arguments.
+
+Error in nnCostFunction (line 19)
+Theta1 = reshape(nn_params(1:hidden_layer_size * (input_layer_size + 1)), ...
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [J, grad] = nnCostFunction(nn_params, ...
+                                   input_layer_size, ...
+                                   hidden_layer_size, ...
+                                   num_labels, ...
+                                   X, y, lambda)
+%NNCOSTFUNCTION Implements the neural network cost function for a two layer
+%neural network which performs classification
+%   [J grad] = NNCOSTFUNCTON(nn_params, hidden_layer_size, num_labels, ...
+%   X, y, lambda) computes the cost and gradient of the neural network. The
+%   parameters for the neural network are "unrolled" into the vector
+%   nn_params and need to be converted back into the weight matrices. 
+% 
+%   The returned parameter grad should be a "unrolled" vector of the
+%   partial derivatives of the neural network.
+%
+
+% Reshape nn_params back into the parameters Theta1 and Theta2, the weight matrices
+% for our 2 layer neural network
+Theta1 = reshape(nn_params(1:hidden_layer_size * (input_layer_size + 1)), ...
+                 hidden_layer_size, (input_layer_size + 1));
+
+Theta2 = reshape(nn_params((1 + (hidden_layer_size * (input_layer_size + 1))):end), ...
+                 num_labels, (hidden_layer_size + 1));
+
+% Setup some useful variables
+m = size(X, 1);
+         
+% You need to return the following variables correctly 
+J = 0;
+Theta1_grad = zeros(size(Theta1));
+Theta2_grad = zeros(size(Theta2));
+
+% ====================== YOUR CODE HERE ======================
+% Instructions: You should complete the code by working through the
+%               following parts.
+%
+% Part 1: Feedforward the neural network and return the cost in the
+%         variable J. After implementing Part 1, you can verify that your
+%         cost function computation is correct by verifying the cost
+%         computed in ex4.m
+%
+% Part 2: Implement the backpropagation algorithm to compute the gradients
+%         Theta1_grad and Theta2_grad. You should return the partial derivatives of
+%         the cost function with respect to Theta1 and Theta2 in Theta1_grad and
+%         Theta2_grad, respectively. After implementing Part 2, you can check
+%         that your implementation is correct by running checkNNGradients
+%
+%         Note: The vector y passed into the function is a vector of labels
+%               containing values from 1..K. You need to map this vector into a 
+%               binary vector of 1's and 0's to be used with the neural network
+%               cost function.
+%
+%         Hint: We recommend implementing backpropagation using a for-loop
+%               over the training examples if you are implementing it for the 
+%               first time.
+%
+% Part 3: Implement regularization with the cost function and gradients.
+%
+%         Hint: You can implement this around the code for
+%               backpropagation. That is, you can compute the gradients for
+%               the regularization separately and then add them to Theta1_grad
+%               and Theta2_grad from Part 2.
+%
+
+% First we calculate our Hipothesys for every x in X
+a1 = [ones(m, 1) X]; % add bias
+z2 = Theta1 * a1';
+a2 = sigmoid(z2)';
+z3 = Theta1 * a2';
+a3 = sigmoid(z3)';
+
+disp(size(a3));
+
+
+
+
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+
+% =========================================================================
+
+% Unroll gradients
+grad = [Theta1_grad(:) ; Theta2_grad(:)];
+
+
+end
+
+##### SOURCE END #####
+--></body></html>

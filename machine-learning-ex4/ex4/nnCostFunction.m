@@ -1,4 +1,4 @@
-function [J grad] = nnCostFunction(nn_params, ...
+function [J, grad] = nnCostFunction(nn_params, ...
                                    input_layer_size, ...
                                    hidden_layer_size, ...
                                    num_labels, ...
@@ -62,25 +62,55 @@ Theta2_grad = zeros(size(Theta2));
 %               and Theta2_grad from Part 2.
 %
 
+% Calculating our hypothesis for m samples
+a1 = [ones(m, 1) X]; % add bias to input layer
+% > Calculating the activation of the hidden layer
+z2 = Theta1 * a1';
+a2 = sigmoid(z2)';
+a2 = [ones(m, 1) a2]; % add bias to hidden layer
+% > Calculating the activation of the output layer
+z3 = Theta2 * a2';
+h = sigmoid(z3)';
 
+% Calculating our Cost
+yk = zeros(m, size(Theta2,1));
+for i=1:m
+    yk(i, y(i)) = 1;
+end
 
+aux_cost = - yk.*log(h) - (1-yk).*log(1-h);
+J = sum(sum(aux_cost,2))/ m;
 
+% Calculating our Regularization factor
+% > Removing bias element from our Regularization for both layers
+Theta1_reg = Theta1(:,2:end);
+Theta2_reg = Theta2(:,2:end);
 
+reg = lambda*(sum(Theta1_reg(:).^2) + sum(Theta2_reg(:).^2))/(2*m);
+J = J + reg;
 
+% Calculating BackPropagation
+% We need z2, a2, z3 and h (a3) from the Feedforward computation
+Delta1 = 0;
+Delta2 = 0;
 
+for i=1:m
+	d3 = (h(i,:) - yk(i, :))';
+	
+	d2 = (Theta2_reg' * d3) .* sigmoidGradient(z2(:,i));
 
+	Delta2 = Delta2 + (d3 * a2(i,:));
+	Delta1 = Delta1 + (d2 * a1(i,:));
+end
 
-
-
-
-
-
-
-
-
-
+Theta1_grad = (1/m).*Delta1;
+Theta2_grad = (1/m).*Delta2;
 
 % -------------------------------------------------------------
+% Calculating BackPropagation Regularized
+
+Theta1_grad(:, 2:end) = Theta1_grad(:, 2:end) + (lambda/m).*Theta1(:, 2:end);
+Theta2_grad(:, 2:end) = Theta2_grad(:, 2:end) + (lambda/m).*Theta2(:, 2:end);
 
 % =========================================================================
 
