@@ -23,7 +23,24 @@ sigma = 0.3;
 %        mean(double(predictions ~= yval))
 %
 
+error_min = inf;
+values = [0.01 0.03 0.1 0.3 1 3 10 30];
 
+for C_aux = values
+  for sigma_aux = values
+
+    model = svmTrain(X, y, C_aux, @(x1, x2) gaussianKernel(x1, x2, sigma_aux));
+    e = mean(double(svmPredict(model, Xval) ~= yval));
+
+    if( e <= error_min )
+        
+      C = C_aux;
+      sigma = sigma_aux;
+      error_min = e;
+   
+    end
+  end
+end
 
 
 
